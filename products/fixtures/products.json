@@ -1,0 +1,74 @@
+[
+  {
+    "model": "products.product",
+    "pk": 1,
+    "fields": {
+      "name": "Черное худи с монограммами adidas Originals",
+      "description": "Мягкая ткань, комфорт и стиль для повседневной носки. Идеально подходит для холодной погоды - с капюшоном для дополнительного тепла.",
+      "price": "6090.00",
+      "quantity": 10,
+      "image": "products_images/Adidas-hoodie.png",
+      "category": 1
+    }
+  },
+  {
+    "model": "products.product",
+    "pk": 2,
+    "fields": {
+      "name": "Синяя куртка The North Face",
+      "description": "Прочные и водоотталкивающие материалы. Легкая и теплая пуховая куртка, обеспечивающая защиту от холодного ветра. Отличный выбор для зимних прогулок.",
+      "price": "23725.00",
+      "quantity": 14,
+      "image": "products_images/Blue-jacket-The-North-Face.png",
+      "category": 1
+    }
+  },
+  {
+    "model": "products.product",
+    "pk": 3,
+    "fields": {
+      "name": "Коричневый спортивный oversized-топ ASOS DESIGN",
+      "description": "Легкий и мягкий материал с текстурой. Стильный и удобный, подходит для ежедневного использования и спортивных мероприятий.",
+      "price": "3390.00",
+      "quantity": 13,
+      "image": "products_images/Brown-sports-oversized-top-ASOS-DESIGN.png",
+      "category": 3
+    }
+  },
+  {
+    "model": "products.product",
+    "pk": 4,
+    "fields": {
+      "name": "Черный рюкзак Nike Heritage",
+      "description": "Прочный и вместительный рюкзак с водоотталкивающим покрытием. Идеален для повседневных походов или путешествий.",
+      "price": "2340.00",
+      "quantity": 9,
+      "image": "products_images/Black-Nike-Heritage-backpack.png",
+      "category": 4
+    }
+  },
+  {
+    "model": "products.product",
+    "pk": 5,
+    "fields": {
+      "name": "Черные туфли Dr Martens 1461 Bex",
+      "description": "Высококачественная кожа и прочная конструкция. Классический стиль с люверсами. Подходят для повседневной носки и для стильных образов.",
+      "price": "13590.00",
+      "quantity": 4,
+      "image": "products_images/Black-Dr-Martens-shoes.png",
+      "category": 2
+    }
+  },
+  {
+    "model": "products.product",
+    "pk": 6,
+    "fields": {
+      "name": "Темно-синие широкие брюки ASOS DESIGN",
+      "description": "Легкая эластичная ткань с фактурой. Отлично сидят на теле, идеальны для различных мероприятий или повседневного использования.",
+      "price": "2890.00",
+      "quantity": 6,
+      "image": "products_images/Dark-blue-wide-leg-ASOs-DESIGN-trousers_LKZNGhq.png",
+      "category": 1
+    }
+  }
+]
