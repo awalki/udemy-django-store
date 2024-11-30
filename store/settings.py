@@ -90,7 +90,7 @@ DATABASES = {
 
         'USER': "avnadmin",
 
-        'PASSWORD': "AVNS_UDMFsQtokI3wkdm-8iv",
+        'PASSWORD': "dbpassw",
 
         'HOST': "django-miracledb.b.aivencloud.com",
 
