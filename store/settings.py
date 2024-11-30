@@ -164,7 +164,6 @@ SOCIALACCOUNT_PROVIDERS = {
     'github': {
         'SCOPE': [
             'user',
-#e7bcd3f1b4dee5c949cd2c4f7026283024fef1a9
         ],
     }
 }
