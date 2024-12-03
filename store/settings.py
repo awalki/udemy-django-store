@@ -26,7 +26,7 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
-DOMAIN_NAME = "http://localhost:8000"
+DOMAIN_NAME = "http://127.0.0.1:8000"
 
 # Application definition
 
@@ -38,8 +38,10 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "django.contrib.sites",
+    "django.contrib.humanize",
     "products",
     "users",
+    "orders",
     "allauth",
     "allauth.account",
     "allauth.socialaccount",
@@ -183,3 +185,8 @@ EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 
 CELERY_BROKER_URL = "redis://localhost:6379"
 CELERY_RESULT_BACKEND = "redis://localhost:6379"
+
+# Stripe
+
+STRIPE_PUBLIC_KEY = 'pk_test_51QRwqbGLIg3yUIZ03U7k6j1JjiG7LbB4rTw83PpnBVW6iNy2RDGjSxgtabjpvsrhGS0AntMHv4kVpCQsqdxapozi0084lijTna'
+STRIPE_SECRET_KEY = 'sk_test_51QRwqbGLIg3yUIZ0tI3N5ZGhSmxh31ZkXDMh4a3TmXjmG0NZCi3UYJ6tY7rPFDHO9rtPSeY8BZv6zByNwXA4T1dq008I0zAacF'
