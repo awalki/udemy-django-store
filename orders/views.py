@@ -4,14 +4,17 @@ from http import HTTPStatus
 import stripe
 from django.http import HttpResponseRedirect, HttpResponse
 from django.views.decorators.csrf import csrf_exempt
-from django.views.generic import TemplateView
+from django.views.generic import TemplateView, DetailView
 
 from django.views.generic.edit import CreateView
+from django.views.generic.list import ListView
 
 from orders.forms import OrderForm
 from django.urls import reverse_lazy, reverse
 from django.conf import settings
 from common.views import TitleMixin
+from orders.models import Order
+from products.models import Basket
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
 
@@ -23,6 +26,25 @@ class SuccessTemplateView(TitleMixin, TemplateView):
 class CanceledTemplateView(TemplateView):
     template_name = 'orders/canceled.html'
 
+class OrderListView(ListView):
+    template_name = 'orders/orders.html'
+    title = 'Store - Заказы'
+    queryset = Order.objects.all()
+    ordering = '-created'
+
+    def get_queryset(self):
+        queryset = super(OrderListView, self).get_queryset()
+        return queryset.filter(initiator=self.request.user)
+
+class OrderDetailView(DetailView):
+    template_name = 'orders/order.html'
+    model = Order
+
+    def get_context_data(self, **kwargs):
+        context = super(OrderDetailView, self).get_context_data(**kwargs)
+        context['title'] = f'Store - Заказ №{self.object.id}'
+        return context
+
 class OrderCreateView(TitleMixin, CreateView):
     title = 'Store - Оформление заказа'
 
@@ -33,14 +55,10 @@ class OrderCreateView(TitleMixin, CreateView):
 
     def post(self, request, *args, **kwargs):
         super(OrderCreateView, self).post(request, *args, **kwargs)
+
+        baskets = Basket.objects.filter(user=self.request.user)
         checkout_session = stripe.checkout.Session.create(
-            line_items=[
-                {
-                    # Provide the exact Price ID (for example, pr_1234) of the product you want to sell
-                    'price': 'price_1QRx2XGLIg3yUIZ0BnBB6AgG',
-                    'quantity': 1,
-                },
-            ],
+            line_items=baskets.stripe_products(),
             metadata={'order_id': self.object.id},
             mode='payment',
             success_url='{}{}'.format(settings.DOMAIN_NAME, reverse('orders:order_success')),
@@ -55,32 +73,31 @@ class OrderCreateView(TitleMixin, CreateView):
 @csrf_exempt
 def my_webhook_view(request):
     payload = request.body
+    sig_header = request.META['HTTP_STRIPE_SIGNATURE']
     event = None
 
     try:
-        event = stripe.Event.construct_from(
-            json.loads(payload), stripe.api_key
+        event = stripe.Webhook.construct_event(
+            payload, sig_header, settings.STRIPE_WEBHOOK_SECRET
         )
-    except ValueError as e:
+    except ValueError:
         # Invalid payload
         return HttpResponse(status=400)
+    except stripe.error.SignatureVerificationError:
+        # Invalid signature
+        return HttpResponse(status=400)
 
-    # Handle the event
-    if event.type == 'payment_intent.succeeded':
-        payment_intent = event.data.object  # contains a stripe.PaymentIntent
+    # Handle the checkout.session.completed event
+    if event['type'] == 'checkout.session.completed':
+        session = event['data']['object']
 
-        fulfill_order(payment_intent)
+        # Fulfill the purchase...
+        fulfill_order(session)
 
-    elif event.type == 'payment_method.attached':
-        payment_method = event.data.object  # contains a stripe.PaymentMethod
-        # Then define and call a method to handle the successful attachment of a PaymentMethod.
-        # handle_payment_method_attached(payment_method)
-    # ... handle other event types
-    else:
-        print('Unhandled event type {}'.format(event.type))
-
+    # Passed signature verification
     return HttpResponse(status=200)
 
 def fulfill_order(session):
-    order_id = session.metadata.order_id
-    print('fulfilin')
+    order_id = int(session.metadata.order_id)
+    order = Order.objects.get(id=order_id)
+    order.update_after_payment()
