@@ -2,17 +2,16 @@ import json
 from http import HTTPStatus
 
 import stripe
-from django.http import HttpResponseRedirect, HttpResponse
+from django.conf import settings
+from django.http import HttpResponse, HttpResponseRedirect
+from django.urls import reverse, reverse_lazy
 from django.views.decorators.csrf import csrf_exempt
-from django.views.generic import TemplateView, DetailView
-
+from django.views.generic import DetailView, TemplateView
 from django.views.generic.edit import CreateView
 from django.views.generic.list import ListView
 
-from orders.forms import OrderForm
-from django.urls import reverse_lazy, reverse
-from django.conf import settings
 from common.views import TitleMixin
+from orders.forms import OrderForm
 from orders.models import Order
 from products.models import Basket
 
@@ -20,38 +19,42 @@ stripe.api_key = settings.STRIPE_SECRET_KEY
 
 
 class SuccessTemplateView(TitleMixin, TemplateView):
-    template_name = 'orders/success.html'
-    title = 'Store - Спасибо за заказ!'
+    template_name = "orders/success.html"
+    title = "Store - Спасибо за заказ!"
+
 
 class CanceledTemplateView(TemplateView):
-    template_name = 'orders/canceled.html'
+    template_name = "orders/canceled.html"
+
 
 class OrderListView(ListView):
-    template_name = 'orders/orders.html'
-    title = 'Store - Заказы'
+    template_name = "orders/orders.html"
+    title = "Store - Заказы"
     queryset = Order.objects.all()
-    ordering = '-created'
+    ordering = "-created"
 
     def get_queryset(self):
         queryset = super(OrderListView, self).get_queryset()
         return queryset.filter(initiator=self.request.user)
 
+
 class OrderDetailView(DetailView):
-    template_name = 'orders/order.html'
+    template_name = "orders/order.html"
     model = Order
 
     def get_context_data(self, **kwargs):
         context = super(OrderDetailView, self).get_context_data(**kwargs)
-        context['title'] = f'Store - Заказ №{self.object.id}'
+        context["title"] = f"Store - Заказ №{self.object.id}"
         return context
 
-class OrderCreateView(TitleMixin, CreateView):
-    title = 'Store - Оформление заказа'
 
-    template_name = 'orders/order-create.html'
+class OrderCreateView(TitleMixin, CreateView):
+    title = "Store - Оформление заказа"
+
+    template_name = "orders/order-create.html"
     form_class = OrderForm
 
-    success_url = reverse_lazy('orders:order_create')
+    success_url = reverse_lazy("orders:order_create")
 
     def post(self, request, *args, **kwargs):
         super(OrderCreateView, self).post(request, *args, **kwargs)
@@ -59,10 +62,14 @@ class OrderCreateView(TitleMixin, CreateView):
         baskets = Basket.objects.filter(user=self.request.user)
         checkout_session = stripe.checkout.Session.create(
             line_items=baskets.stripe_products(),
-            metadata={'order_id': self.object.id},
-            mode='payment',
-            success_url='{}{}'.format(settings.DOMAIN_NAME, reverse('orders:order_success')),
-            cancel_url='{}{}'.format(settings.DOMAIN_NAME, reverse('orders:order_canceled')),
+            metadata={"order_id": self.object.id},
+            mode="payment",
+            success_url="{}{}".format(
+                settings.DOMAIN_NAME, reverse("orders:order_success")
+            ),
+            cancel_url="{}{}".format(
+                settings.DOMAIN_NAME, reverse("orders:order_canceled")
+            ),
         )
         return HttpResponseRedirect(checkout_session.url, status=HTTPStatus.SEE_OTHER)
 
@@ -70,10 +77,11 @@ class OrderCreateView(TitleMixin, CreateView):
         form.instance.initiator = self.request.user
         return super(OrderCreateView, self).form_valid(form)
 
+
 @csrf_exempt
 def my_webhook_view(request):
     payload = request.body
-    sig_header = request.META['HTTP_STRIPE_SIGNATURE']
+    sig_header = request.META["HTTP_STRIPE_SIGNATURE"]
     event = None
 
     try:
@@ -88,14 +96,15 @@ def my_webhook_view(request):
         return HttpResponse(status=400)
 
     # Handle the checkout.session.completed event
-    if event['type'] == 'checkout.session.completed':
-        session = event['data']['object']
+    if event["type"] == "checkout.session.completed":
+        session = event["data"]["object"]
 
         # Fulfill the purchase...
         fulfill_order(session)
 
     # Passed signature verification
     return HttpResponse(status=200)
+
 
 def fulfill_order(session):
     order_id = int(session.metadata.order_id)

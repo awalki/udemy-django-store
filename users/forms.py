@@ -8,9 +8,9 @@ from django.contrib.auth.forms import (
     UserCreationForm,
 )
 from django.utils.timezone import now
-from users.tasks import send_email_verification
 
 from users.models import EmailVerification, User
+from users.tasks import send_email_verification
 
 
 class UserLoginForm(AuthenticationForm):
